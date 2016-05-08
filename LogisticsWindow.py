@@ -174,6 +174,9 @@ class OrderDisplayPanel(QFrame):
         super().__init__(parent)
         self.world = world
         self.logistics_window = parent
+
+        self.margin = 10
+        self.default_size = 100
         self.initUI()
 
     def initUI(self):
@@ -183,43 +186,44 @@ class OrderDisplayPanel(QFrame):
         self.lbl2 = QLabel(self)
         self.lbl1img = QPixmap('res/email.png')
         self.lbl2img = QPixmap('res/tempo_automation_logo.png')
-
+        self.showLabels()
         self.show()
         self.resize()
 
     def paintEvent(self, e):
         super().paintEvent(e)
-        self.showLabels()
+        qp = QPainter()
+        qp.begin(self)
+        self.drawLines(qp)
+        qp.end()
 
+    def drawLines(self,qp):
+        h = self.height()
+        w = self.width()
 
-#        self.drawLines(qp)
+        text_label = QRect(self.margin, self.margin + self.default_size + self.margin, w - (self.margin * 3),
+                           self.default_size)
+        pen = QPen(Qt.black, 2, Qt.DashLine)
+        qp.setPen(pen)
 
-    def drawLines(self, qp):
-        pass
+        qp.drawLine((2 * self.margin) + self.default_size, self.margin + (self.default_size / 2),
+                    w - ((2 * self.margin) + self.default_size), self.margin + (self.default_size / 2))
+
+        qp.setFont(QFont('Decorative', 10))
+        qp.drawText(text_label, Qt.AlignCenter, "A customer is contacting Tempo Automation...")
 
     def showLabels(self):
         h = self.height()
         w = self.width()
-        margin = 10
-        default_size = 100
-        email_label = QRect(margin,margin,default_size,default_size)
-        tempo_label = QRect(w-(margin+default_size),margin,default_size,default_size)
-        text_label = QRect(margin,margin+default_size+margin,default_size,default_size)
+        email_label = QRect(self.margin,self.margin,self.default_size,self.default_size)
+        tempo_label = QRect(w-(self.margin+self.default_size),self.margin,self.default_size,self.default_size)
 
         self.lbl1.setScaledContents(True)
         self.lbl1.setGeometry(email_label)
         self.lbl1.setPixmap(self.lbl1img)
         self.lbl1.show()
 
-        qp = QPainter()
-        qp.begin(self)
-        pen = QPen(Qt.black, 2, Qt.DashLine)
-        qp.setPen(pen)
-        qp.drawLine((2 * margin) + default_size, margin + (default_size / 2), w - ((2 * margin) + default_size), margin + (default_size / 2))
 
-        qp.setFont(QFont('Decorative', 10))
-        qp.drawText(text_label, Qt.AlignCenter, "A customer is contacting Tempo Automation...")
-        qp.end()
 
 
         self.lbl2.setScaledContents(True)
@@ -227,22 +231,15 @@ class OrderDisplayPanel(QFrame):
         self.lbl2.setPixmap(self.lbl2img)
         self.lbl2.show()
 
+        self.update()
+
     def destroy(self):
         self.hide()
         super().destroy(False, False)
 
     def resize(self):
         super().resize(self.parent().size())
-#        self.showLabels()
-
-
-#pic = QtGui.QLabel(window)
-#pic.setGeometry(10, 10, 400, 100)
-#use full ABSOLUTE path to the image, not relative
-#pic.setPixmap(QtGui.QPixmap(os.getcwd() + "/logo.png"))
-
-
-
+        self.showLabels()
 
 
 class LogisticsDisplayPanel(QFrame):

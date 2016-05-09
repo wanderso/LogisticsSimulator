@@ -173,13 +173,13 @@ class Factory:
 
 
 Blank_Circuit_Board = Lone_Item("Blank Circuit Board")
-Soddered_Circuit_Board = Lone_Item("Soddered Circuit Board")
+Soldered_Circuit_Board = Lone_Item("Soldered Circuit Board")
 Loaded_Circuit_Board = Lone_Item("Loaded Circuit Board")
 Box_Of_Ten = Item_Count(Blank_Circuit_Board,10)
 
-Sodder_Jet = Process("Sodder Jet",[Blank_Circuit_Board],[Soddered_Circuit_Board])
+Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board])
 
-Sodder_Printer = Machine("",[Sodder_Jet])
+Solder_Printer = Machine("",[Solder_Jet])
 
 print (Box_Of_Ten)
 

@@ -367,7 +367,7 @@ class LogisticsWindow(QWidget):
 
         self.setLayout(self.hbox1)
 
-        self.setGeometry(300, 300, 500, 220)
+        self.setGeometry(300, 300, 500, 320)
         self.setWindowTitle('Tempo Factory Simulator')
         self.setWindowIcon(QIcon('res/tempo_automation_logo.png'))
         self.show()

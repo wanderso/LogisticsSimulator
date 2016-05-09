@@ -3,10 +3,30 @@ from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit,
     QHBoxLayout, QVBoxLayout, QFrame, QSplitter, QTableWidget,
     QTableWidgetItem, QSizePolicy, QScrollArea)
 from PyQt5.QtGui import QIcon, QFont, QPainter, QColor, QPen, QPixmap
-from PyQt5.QtCore import Qt, QRect
+from PyQt5.QtCore import Qt, QRect, QObject, pyqtSignal, QEvent
 import functools
 
 
+def clickable(widget):
+
+    class Filter(QObject):
+
+        clicked = pyqtSignal()
+
+        def eventFilter(self, obj, event):
+
+            if obj == widget:
+                if event.type() == QEvent.MouseButtonRelease:
+                    if obj.rect().contains(event.pos()):
+                        self.clicked.emit()
+                        # The developer can opt for .emit(obj) to get the object within the slot.
+                        return True
+
+            return False
+
+    filter = Filter(widget)
+    widget.installEventFilter(filter)
+    return filter.clicked
 
 
 class LogisticsControlPanel(QFrame):
@@ -186,9 +206,13 @@ class OrderDisplayPanel(QFrame):
         self.lbl2 = QLabel(self)
         self.lbl1img = QPixmap('res/email.png')
         self.lbl2img = QPixmap('res/tempo_automation_logo.png')
+        clickable(self.lbl1).connect(self.clickLbl1)
         self.showLabels()
         self.show()
         self.resize()
+
+    def clickLbl1(self):
+        print(self.design)
 
     def paintEvent(self, e):
         super().paintEvent(e)
@@ -201,8 +225,9 @@ class OrderDisplayPanel(QFrame):
         h = self.height()
         w = self.width()
 
-        text_label = QRect(self.margin, self.margin + self.default_size + self.margin, w - (self.margin * 3),
+        text_label = QRect(self.margin, self.margin + self.default_size + self.margin, w - (self.margin * 2),
                            self.default_size)
+
         pen = QPen(Qt.black, 2, Qt.DashLine)
         qp.setPen(pen)
 
@@ -212,7 +237,9 @@ class OrderDisplayPanel(QFrame):
         qp.setFont(QFont('Decorative', 10))
         qp.drawText(text_label, Qt.AlignCenter, "A customer is contacting Tempo Automation...")
 
+
     def showLabels(self):
+
         h = self.height()
         w = self.width()
         email_label = QRect(self.margin,self.margin,self.default_size,self.default_size)
@@ -340,7 +367,7 @@ class LogisticsWindow(QWidget):
 
         self.setLayout(self.hbox1)
 
-        self.setGeometry(300, 300, 400, 220)
+        self.setGeometry(300, 300, 500, 220)
         self.setWindowTitle('Tempo Factory Simulator')
         self.setWindowIcon(QIcon('res/tempo_automation_logo.png'))
         self.show()

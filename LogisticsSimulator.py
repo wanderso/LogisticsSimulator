@@ -9,6 +9,9 @@ class Design:
         self.part_list = part_list
         self.board_design = []
 
+    def __repr__(self):
+        return ("(" + str(self.part_list) + ", " + str(self.board_design) + ")")
+
 
 class Quote:
     def __init__(self):
@@ -95,7 +98,6 @@ class Customer:
         for part in part_list:
             if random.random() < part.odds:
                 design_part_list.append((part, random.choice(part.count)))
-        print(design_part_list)
         return Design(design_part_list, [])
 
 
@@ -122,7 +124,7 @@ class World:
             if self.customer_list == []:
                 self.generate_customer("Placeholder")
             customer = random.choice(self.customer_list)
-        customer.generate_design(self.get_part_list())
+        return customer.generate_design(self.get_part_list())
 
     def main_loop(self):
         pass

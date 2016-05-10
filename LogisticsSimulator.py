@@ -1,5 +1,6 @@
 import random
 import sys
+import simpy
 
 from LogisticsWindow import LogisticsWindow
 from PyQt5.QtWidgets import QApplication
@@ -107,6 +108,7 @@ class World:
         self.distributor_list = []
         self.part_list = []
         self.customer_list = []
+        self.environment = simpy.Environment()
 
     def generate_part(self):
         self.part_list.append(Parts.generate_part("GENERIC_" + str(len(self.part_list))))

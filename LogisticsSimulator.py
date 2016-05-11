@@ -20,8 +20,6 @@ class Quote:
 
 
 class Parts:
-   # part_list = []
-
     def __init__(self, name="GENERIC_", odds=0.1, count=[1]):
         self.odds = odds
         self.count = count
@@ -50,6 +48,9 @@ class Parts:
 class Logistics_Employee:
     def __init__(self):
         pass
+
+
+
 
 
 class Board_Manufacturer:

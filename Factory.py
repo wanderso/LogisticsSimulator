@@ -214,6 +214,9 @@ class Routing:
     def get_output(self):
         return self.output
 
+    def __getitem__(self, item):
+        return self.route[item]
+
 
 class Factory:
     def __init__(self):
@@ -225,6 +228,7 @@ class Factory:
         self.routings.append(routing)
 
     def add_machine(self,machine):
+        machine.set_environment(self.environment)
         self.machines.append(machine)
 
     def engage_routing(self, routing):
@@ -254,12 +258,11 @@ class Widget:
 
     def send_widget_to_machine(self,machine,env):
         proc = machine.contains_process(self.routing[self.pointer])
-        if proc and machine.is_free():
-            pass
         with machine.get_resource().request() as req:
             yield req
-            print ("Undergoing machine process")
+            print ("Undergoing machine process at time %d" % env.now)
             yield env.timeout(proc.get_time())
+            print ("Finished machine process at time %d" % env.now)
 
 
     def increment_ptr(self):
@@ -287,6 +290,9 @@ Driver = Machine("Ex-Train Machine", [Driver_Load])
 Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 
+Widget_1 = Widget(Board_Construct_1)
+Widget_2 = Widget(Board_Construct_1)
+Widget_3 = Widget(Board_Construct_1)
 
 
 Tempo_Automation.add_machine(Solder_Printer)
@@ -296,6 +302,13 @@ Tempo_Automation.add_machine(Driver)
 Tempo_Automation.add_routing(Board_Construct_1)
 Tempo_Automation.add_routing(Board_Construct_2)
 
-Tempo_Automation.engage_routing(Board_Construct_1)
+#Tempo_Automation.engage_routing(Board_Construct_1)
+env = Tempo_Automation.get_environment()
+env.process(Widget_1.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+
+
+env.run(until=6)
 
 #print (Box_Of_Ten)

@@ -1,8 +1,9 @@
 import inflect
+import simpy
 import sys
 
-from MainWindow import MainWindow
-from PyQt5.QtWidgets import QApplication
+#from MainWindow import MainWindow
+#from PyQt5.QtWidgets import QApplication
 
 class Lone_Item:
     def __hash__(self):
@@ -27,7 +28,7 @@ class Lone_Item:
     def get_name(self):
         return self.name
 
-    def __repr__(self):
+    def __str__(self):
         return self.name
 
     def __eq__(self,other):
@@ -139,12 +140,27 @@ class Process:
     def get_from_directory(self, key):
         return self.directory[key]
 
+    def get_time(self):
+        return self.time
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __str__(self):
+        return self.name
+
+    def run_process(self, env):
+        pass
+
 
 class Machine:
     def __init__(self, name = "", process_list = []):
         self.name = name
-        self.processes = []
+        self.processes = process_list
         self.items_contained = []
+        self.idle = True
+        self.environment = False
+        self.res = False
 
     def add_to_directory(self, key, value):
         self.directory[key] = value
@@ -155,18 +171,99 @@ class Machine:
     def get_from_directory(self, key):
         return self.directory[key]
 
+    def contains_process(self, process):
+        for entry in self.processes:
+            if entry == process:
+                return entry
+        return False
+
+    def is_free(self):
+        return self.idle
+
+    def run_process(self,process):
+        while self.environment:
+            yield(process.get_time())
+
+        yield False
+
+    def set_environment(self,environment):
+        self.environment = environment
+        self.res = simpy.Resource(self.environment, capacity=1)
+
+    def get_resource(self):
+        return self.res
+
+
+    def __str__(self):
+        return self.name
+
+
+
 class Routing:
     def __init__(self,route = [], input = [], output = []):
         self.route = route
         self.input = input
         self.output = output
 
+    def get_route(self):
+        return self.route
+
+    def get_input(self):
+        return self.input
+
+    def get_output(self):
+        return self.output
+
+
 class Factory:
     def __init__(self):
         self.routings = []
         self.machines = []
+        self.environment = simpy.Environment()
+
+    def add_routing(self,routing):
+        self.routings.append(routing)
+
+    def add_machine(self,machine):
+        self.machines.append(machine)
+
+    def engage_routing(self, routing):
+        route = routing.get_route()
+        input = routing.get_input()
+        output = routing.get_output()
+
+        for machine in self.machines:
+            if not machine.is_free():
+                continue
+            proc = machine.contains_process(route[0])
+            if not proc:
+                continue
+            print(proc)
 
 
+    def run(self, timestamp):
+        self.environment.run(until=timestamp)
+
+    def get_environment(self):
+        return self.environment
+
+class Widget:
+    def __init__(self, routing):
+        self.routing = routing
+        self.pointer = 0
+
+    def send_widget_to_machine(self,machine,env):
+        proc = machine.contains_process(self.routing[self.pointer])
+        if proc and machine.is_free():
+            pass
+        with machine.get_resource().request() as req:
+            yield req
+            print ("Undergoing machine process")
+            yield env.timeout(proc.get_time())
+
+
+    def increment_ptr(self):
+        self.pointer += 1
 
 
 
@@ -177,18 +274,28 @@ Soldered_Circuit_Board = Lone_Item("Soldered Circuit Board")
 Loaded_Circuit_Board = Lone_Item("Loaded Circuit Board")
 Box_Of_Ten = Item_Count(Blank_Circuit_Board,10)
 
+Tempo_Automation = Factory()
+
 Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board])
+Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board])
+Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board])
 
-Solder_Printer = Machine("",[Solder_Jet])
+Solder_Printer = Machine("Solder Printer",[Solder_Jet])
+Worker = Machine("Worker",[Hand_Load])
+Driver = Machine("Ex-Train Machine", [Driver_Load])
 
-print (Box_Of_Ten)
+Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
+Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 
 
 
+Tempo_Automation.add_machine(Solder_Printer)
+Tempo_Automation.add_machine(Worker)
+Tempo_Automation.add_machine(Driver)
 
-if __name__ == '__main__':
+Tempo_Automation.add_routing(Board_Construct_1)
+Tempo_Automation.add_routing(Board_Construct_2)
 
-    app = QApplication(sys.argv)
-    ex = MainWindow()
-    sys.exit(app.exec_())
+Tempo_Automation.engage_routing(Board_Construct_1)
 
+#print (Box_Of_Ten)

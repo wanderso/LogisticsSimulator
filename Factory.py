@@ -103,6 +103,9 @@ class Item_Collection:
     def __init__(self,input_list = []):
         self.items = Item_Count.generate_normalized_items(input_list)
 
+    def __iter__(self):
+        return self.items.__iter__()
+
     def add(self, input_list):
         for item in input_list:
             if isinstance(item,Lone_Item):
@@ -116,6 +119,15 @@ class Item_Collection:
 
     def contents(self):
         return self.items
+
+    def __contains__(self,item):
+        if isinstance(item, Lone_Item):
+            for object in self.items:
+                if(object.get_item() == item):
+                    return True
+            return False
+        elif isinstance(item, Item_Count):
+            return False
 
 
 
@@ -212,8 +224,8 @@ class Machine:
 class Routing:
     def __init__(self,route = [], input = [], output = []):
         self.route = route
-        self.input = input
-        self.output = output
+        self.input = Item_Collection(input)
+        self.output = Item_Collection(output)
 
     def get_route(self):
         return self.route
@@ -260,16 +272,14 @@ class Factory:
 
 
     def logic(self):
-
         items_available = []
         for item_count in self.items.contents():
             items_available.append(item_count.get_item())
 
-        print(items_available)
 
         for routing in self.routings:
             for item in routing.input:
-                if item in items_available:
+                if item.get_item() in items_available:
                     print (item)
 
 

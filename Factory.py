@@ -129,7 +129,7 @@ class Process:
         self.inputs = Item_Count.generate_normalized_items(input_list)
 
     def set_outputs(self, output_list):
-        self.inputs = Item_Count.generate_normalized_items(output_list)
+        self.outputs = Item_Count.generate_normalized_items(output_list)
 
     def add_to_directory(self, key, value):
         self.directory[key] = value
@@ -142,6 +142,13 @@ class Process:
 
     def get_time(self):
         return self.time
+
+    def get_inputs(self):
+        return self.inputs
+
+    def get_outputs(self):
+        return self.outputs
+
 
     def __eq__(self, other):
         return self.name == other.name
@@ -188,7 +195,7 @@ class Machine:
 
     def set_environment(self,environment):
         self.environment = environment
-        self.res = simpy.Resource(self.environment, capacity=1)
+        self.res = simpy.Resource(self.environment, capacity=2)
 
     def get_resource(self):
         return self.res
@@ -223,6 +230,10 @@ class Factory:
         self.routings = []
         self.machines = []
         self.environment = simpy.Environment()
+        self.items = Item_Collection()
+
+    def add_items(self, item_list):
+        self.items.add(item_list)
 
     def add_routing(self,routing):
         self.routings.append(routing)
@@ -251,6 +262,8 @@ class Factory:
     def get_environment(self):
         return self.environment
 
+
+
 class Widget:
     def __init__(self, routing):
         self.routing = routing
@@ -260,9 +273,12 @@ class Widget:
         proc = machine.contains_process(self.routing[self.pointer])
         with machine.get_resource().request() as req:
             yield req
+            print (proc.get_inputs())
             print ("Undergoing machine process at time %d" % env.now)
             yield env.timeout(proc.get_time())
             print ("Finished machine process at time %d" % env.now)
+            print (proc.get_outputs())
+
 
 
     def increment_ptr(self):
@@ -279,9 +295,11 @@ Box_Of_Ten = Item_Count(Blank_Circuit_Board,10)
 
 Tempo_Automation = Factory()
 
-Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board])
-Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board])
-Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board])
+Tempo_Automation.add_items([Box_Of_Ten])
+
+Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=2)
+Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
+Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=1)
 
 Solder_Printer = Machine("Solder Printer",[Solder_Jet])
 Worker = Machine("Worker",[Hand_Load])
@@ -293,6 +311,8 @@ Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit
 Widget_1 = Widget(Board_Construct_1)
 Widget_2 = Widget(Board_Construct_1)
 Widget_3 = Widget(Board_Construct_1)
+Widget_4 = Widget(Board_Construct_1)
+Widget_5 = Widget(Board_Construct_1)
 
 
 Tempo_Automation.add_machine(Solder_Printer)
@@ -302,13 +322,13 @@ Tempo_Automation.add_machine(Driver)
 Tempo_Automation.add_routing(Board_Construct_1)
 Tempo_Automation.add_routing(Board_Construct_2)
 
-#Tempo_Automation.engage_routing(Board_Construct_1)
 env = Tempo_Automation.get_environment()
+
 env.process(Widget_1.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
 env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
 env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
 
 
-env.run(until=6)
+env.run(until=10)
 
 #print (Box_Of_Ten)

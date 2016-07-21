@@ -114,6 +114,9 @@ class Item_Collection:
                     ("Sent %r to Item_Collection.add that is not a Lone_Item or Item_Count" % (item))
             self.items = Item_Count.add_ic_to_ic_list(self.items, additem)
 
+    def contents(self):
+        return self.items
+
 
 
 
@@ -247,16 +250,32 @@ class Factory:
         input = routing.get_input()
         output = routing.get_output()
 
-        for machine in self.machines:
-            if not machine.is_free():
-                continue
-            proc = machine.contains_process(route[0])
-            if not proc:
-                continue
-            print(proc)
+#        for machine in self.machines:
+#            if not machine.is_free():
+#                continue
+#            proc = machine.contains_process(route[0])
+#            if not proc:
+#                continue
+#            print(proc)
+
+
+    def logic(self):
+
+        items_available = []
+        for item_count in self.items.contents():
+            items_available.append(item_count.get_item())
+
+        print(items_available)
+
+        for routing in self.routings:
+            for item in routing.input:
+                if item in items_available:
+                    print (item)
+
 
 
     def run(self, timestamp):
+#        print(self.items)
         self.environment.run(until=timestamp)
 
     def get_environment(self):
@@ -273,12 +292,11 @@ class Widget:
         proc = machine.contains_process(self.routing[self.pointer])
         with machine.get_resource().request() as req:
             yield req
-            print (proc.get_inputs())
-            print ("Undergoing machine process at time %d" % env.now)
+            #print (proc.get_inputs())
+            #print ("Undergoing machine process at time %d" % env.now)
             yield env.timeout(proc.get_time())
-            print ("Finished machine process at time %d" % env.now)
-            print (proc.get_outputs())
-
+            #print ("Finished machine process at time %d" % env.now)
+            #print (proc.get_outputs())
 
 
     def increment_ptr(self):
@@ -298,37 +316,39 @@ Tempo_Automation = Factory()
 Tempo_Automation.add_items([Box_Of_Ten])
 
 Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=2)
-Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
+#Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
 Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=1)
 
 Solder_Printer = Machine("Solder Printer",[Solder_Jet])
-Worker = Machine("Worker",[Hand_Load])
-Driver = Machine("Ex-Train Machine", [Driver_Load])
+#Worker = Machine("Worker",[Hand_Load])
+Driver = Machine("Pick and Place Machine", [Driver_Load])
 
-Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
+#Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 
-Widget_1 = Widget(Board_Construct_1)
-Widget_2 = Widget(Board_Construct_1)
-Widget_3 = Widget(Board_Construct_1)
-Widget_4 = Widget(Board_Construct_1)
-Widget_5 = Widget(Board_Construct_1)
+Widget_1 = Widget(Board_Construct_2)
+Widget_2 = Widget(Board_Construct_2)
+Widget_3 = Widget(Board_Construct_2)
+Widget_4 = Widget(Board_Construct_2)
+Widget_5 = Widget(Board_Construct_2)
 
 
 Tempo_Automation.add_machine(Solder_Printer)
-Tempo_Automation.add_machine(Worker)
+#Tempo_Automation.add_machine(Worker)
 Tempo_Automation.add_machine(Driver)
 
-Tempo_Automation.add_routing(Board_Construct_1)
+#Tempo_Automation.add_routing(Board_Construct_1)
 Tempo_Automation.add_routing(Board_Construct_2)
 
-env = Tempo_Automation.get_environment()
+#env = Tempo_Automation.get_environment()
 
-env.process(Widget_1.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+#env.process(Widget_1.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+#env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+#env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
 
+Tempo_Automation.logic()
 
-env.run(until=10)
+Tempo_Automation.run(10)
+#env.run(until=10)
 
 #print (Box_Of_Ten)

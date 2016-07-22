@@ -90,11 +90,11 @@ class Item_Count:
         lone = item_count.get_item()
         for value in input_list:
             if lone == value.get_item():
-                remaining = item_count.get_number() - value.get_number()
+                remaining = value.get_number() - item_count.get_number()
                 if remaining < 0:
                     raise ValueError\
                         ("Attempted to remove more %r s from list than it contained" % (item_count))
-                value.set_number(item_count.get_number() - value.get_number())
+                value.set_number(value.get_number() - item_count.get_number())
 
                 item_count = -1
                 break
@@ -138,13 +138,13 @@ class Item_Collection:
     def remove(self, remove_list):
         for item in remove_list:
             if isinstance(item, Lone_Item):
-                additem = Item_Count(item, 1)
+                removeitem = Item_Count(item, 1)
             elif isinstance(item, Item_Count):
-                additem = item
+                removeitem = item
             else:
-                raise ValueError \
+                raise ValueError\
                     ("Sent %r to Item_Collection.add that is not a Lone_Item or Item_Count" % (item))
-            self.items = Item_Count.add_ic_to_ic_list(self.items, additem)
+            self.items = Item_Count.remove_ic_from_ic_list(self.items, removeitem)
 
     def contents(self):
         return self.items
@@ -295,10 +295,21 @@ class Factory:
         input = routing.get_input()
         output = routing.get_output()
 
-        print(self.items)
+#        print(self.items)
 
+        self.items.remove(input)
+        make_object = Widget(routing)
         for entry in routing.get_route():
-            print entry
+            #print entry
+            for machine in self.machines:
+                if machine.contains_process(entry):
+                    print machine
+                    env = self.get_environment()
+                    env.process(make_object.send_widget_to_machine(machine,entry,env))
+                    break
+             #   print machine
+
+#        print(self.items)
 
 #        for machine in self.machines:
 #            if not machine.is_free():
@@ -339,14 +350,16 @@ class Widget:
         self.routing = routing
         self.pointer = 0
 
-    def send_widget_to_machine(self,machine,env):
-        proc = machine.contains_process(self.routing[self.pointer])
+    def test(self):
+        print "Hello!!!"
+
+    def send_widget_to_machine(self,machine,proc,env):
         with machine.get_resource().request() as req:
             yield req
             #print (proc.get_inputs())
-            #print ("Undergoing machine process at time %d" % env.now)
+            print ("Undergoing machine process at time %d" % env.now)
             yield env.timeout(proc.get_time())
-            #print ("Finished machine process at time %d" % env.now)
+            print ("Finished machine process at time %d" % env.now)
             #print (proc.get_outputs())
 
 

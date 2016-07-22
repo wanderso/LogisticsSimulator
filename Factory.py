@@ -127,9 +127,10 @@ class Item_Collection:
                     return True
             return False
         elif isinstance(item, Item_Count):
+            for object in self.items:
+                if (object.get_item() == item.get_item()):
+                    return object.get_number() >= item.get_number()
             return False
-
-
 
 
 class Process:
@@ -272,15 +273,16 @@ class Factory:
 
 
     def logic(self):
-        items_available = []
-        for item_count in self.items.contents():
-            items_available.append(item_count.get_item())
-
-
         for routing in self.routings:
+            input_collected = True
             for item in routing.input:
-                if item.get_item() in items_available:
-                    print (item)
+                if item not in self.items:
+                    input_collected = False
+
+            if input_collected:
+                print routing
+
+
 
 
 

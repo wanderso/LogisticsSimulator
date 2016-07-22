@@ -86,6 +86,24 @@ class Item_Count:
         return input_list
 
     @staticmethod
+    def remove_ic_from_ic_list(input_list, item_count):
+        lone = item_count.get_item()
+        for value in input_list:
+            if lone == value.get_item():
+                remaining = item_count.get_number() - value.get_number()
+                if remaining < 0:
+                    raise ValueError\
+                        ("Attempted to remove more %r s from list than it contained" % (item_count))
+                value.set_number(item_count.get_number() - value.get_number())
+
+                item_count = -1
+                break
+        if item_count != -1:
+            raise ValueError\
+                ("Attempted to remove %r from list that did not contain it" % (item_count))
+        return input_list
+
+    @staticmethod
     def generate_normalized_items(input_list):
         return_list = []
         for item in input_list:
@@ -117,6 +135,17 @@ class Item_Collection:
                     ("Sent %r to Item_Collection.add that is not a Lone_Item or Item_Count" % (item))
             self.items = Item_Count.add_ic_to_ic_list(self.items, additem)
 
+    def remove(self, remove_list):
+        for item in remove_list:
+            if isinstance(item, Lone_Item):
+                additem = Item_Count(item, 1)
+            elif isinstance(item, Item_Count):
+                additem = item
+            else:
+                raise ValueError \
+                    ("Sent %r to Item_Collection.add that is not a Lone_Item or Item_Count" % (item))
+            self.items = Item_Count.add_ic_to_ic_list(self.items, additem)
+
     def contents(self):
         return self.items
 
@@ -131,6 +160,9 @@ class Item_Collection:
                 if (object.get_item() == item.get_item()):
                     return object.get_number() >= item.get_number()
             return False
+
+    def __str__(self):
+        return self.items.__str__()
 
 
 class Process:
@@ -263,6 +295,11 @@ class Factory:
         input = routing.get_input()
         output = routing.get_output()
 
+        print(self.items)
+
+        for entry in routing.get_route():
+            print entry
+
 #        for machine in self.machines:
 #            if not machine.is_free():
 #                continue
@@ -280,7 +317,9 @@ class Factory:
                     input_collected = False
 
             if input_collected:
-                print routing
+#                print routing
+                self.engage_routing(routing)
+                #Run the routing here.
 
 
 

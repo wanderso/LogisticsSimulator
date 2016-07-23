@@ -329,11 +329,14 @@ class Factory:
             for item in routing.input:
                 if item not in self.items:
                     input_collected = False
+#                    print ("Item %s not found" % item)
                 else:
                     total_input = item.get_number()
                     total_output = self.items.count_specific_item(item.get_item())
                     items_available = int(total_output/total_input)
-                    if input_max == -1 or input_max > items_available:
+                    if input_max == -1:
+                        input_max = items_available
+                    elif input_max > items_available:
                         input_max = items_available
 
             if input_collected:
@@ -467,7 +470,7 @@ Tempo_Automation.add_routing(Buy_More_Boards)
 
 #Tempo_Automation.logic()
 
-Tempo_Automation.run(110)
+Tempo_Automation.run(102)
 #env.run(until=10)
 
 #print (Box_Of_Ten)

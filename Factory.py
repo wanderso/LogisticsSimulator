@@ -1,5 +1,6 @@
 import inflect
 import simpy
+import itertools
 import sys
 
 #from MainWindow import MainWindow
@@ -129,7 +130,7 @@ class Item_Collection:
             if isinstance(item,Lone_Item):
                 additem = Item_Count(item, 1)
             elif isinstance(item, Item_Count):
-                additem = item
+                additem = Item_Count(item.get_item(), item.get_number())
             else:
                 raise ValueError\
                     ("Sent %r to Item_Collection.add that is not a Lone_Item or Item_Count" % (item))
@@ -295,6 +296,7 @@ class Factory:
         self.widgets = []
         self.environment = simpy.Environment()
         self.items = Item_Collection()
+        self.widget_count = 0
 
     def add_items(self, item_list):
         self.items.add(item_list)
@@ -314,8 +316,9 @@ class Factory:
 #        print(self.items)
 
         self.items.remove(input)
-        make_object = Widget(routing)
-        print("Widget output at time of making widget: %s" % make_object.get_output())
+        make_object = Widget(routing, id=self.widget_count)
+        self.widget_count += 1
+#        print("Widget output at time of making widget: %s" % make_object.get_output())
         self.widgets.append(make_object)
 
 
@@ -352,24 +355,22 @@ class Factory:
                         env.process(widget.send_widget_to_machine(machine, proc, env))
                         continue
         for widget in remove_widgets:
-           # print("Removing widget from list")
-           # print remove_widgets
             self.widgets.remove(widget)
-            print("Widget output: %s" % widget.get_output())
             self.items.add(widget.get_output())
-           # print self.items
 
 
 
 
 
     def run(self, timestamp):
-        print(self.items)
+        print (self.items)
         env = self.get_environment()
         for i in range(env.now+1,timestamp):
+            self.logic()
             self.process_widgets()
             env.run(until=i)
-        print(self.items)
+        print (self.items)
+
 
     def get_environment(self):
         return self.environment
@@ -377,11 +378,12 @@ class Factory:
 
 
 class Widget:
-    def __init__(self, routing):
+    def __init__(self, routing, id = 0):
         self.routing = routing
         self.pointer = 0
         self.running = False
         self.finished = False
+        self.id = id
 
     def is_running(self):
         return self.running
@@ -399,11 +401,9 @@ class Widget:
         self.running = True
         with machine.get_resource().request() as req:
             yield req
-            #print (proc.get_inputs())
-            print ("Undergoing machine process at time %d" % env.now)
+            print ("Undergoing machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
             yield env.timeout(proc.get_time())
-            print ("Finished machine process at time %d" % env.now)
-            #print (proc.get_outputs())
+            print ("Finished machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
             self.pointer += 1
         if self.pointer == len(self.routing):
             self.finished = True
@@ -431,13 +431,17 @@ Tempo_Automation.add_items([Box_Of_Ten])
 Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=2)
 #Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
 Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=1)
+Buy_Boards = Process("Buy More Boards", list(itertools.repeat(Loaded_Circuit_Board, 10)),list(itertools.repeat(Blank_Circuit_Board, 15)),time=10)
 
 Solder_Printer = Machine("Solder Printer",[Solder_Jet])
-#Worker = Machine("Worker",[Hand_Load])
+Worker = Machine("Worker",[Buy_Boards])
 Driver = Machine("Pick and Place Machine", [Driver_Load])
 
 #Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
+
+
+Buy_More_Boards = Routing(route=[Buy_Boards], input=list(itertools.repeat(Loaded_Circuit_Board, 10)),output=list(itertools.repeat(Blank_Circuit_Board, 15)))
 
 Widget_1 = Widget(Board_Construct_2)
 Widget_2 = Widget(Board_Construct_2)
@@ -447,11 +451,13 @@ Widget_5 = Widget(Board_Construct_2)
 
 
 Tempo_Automation.add_machine(Solder_Printer)
-#Tempo_Automation.add_machine(Worker)
+Tempo_Automation.add_machine(Worker)
 Tempo_Automation.add_machine(Driver)
 
 #Tempo_Automation.add_routing(Board_Construct_1)
 Tempo_Automation.add_routing(Board_Construct_2)
+Tempo_Automation.add_routing(Buy_More_Boards)
+
 
 #env = Tempo_Automation.get_environment()
 
@@ -459,9 +465,9 @@ Tempo_Automation.add_routing(Board_Construct_2)
 #env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
 #env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
 
-Tempo_Automation.logic()
+#Tempo_Automation.logic()
 
-Tempo_Automation.run(20)
+Tempo_Automation.run(110)
 #env.run(until=10)
 
 #print (Box_Of_Ten)

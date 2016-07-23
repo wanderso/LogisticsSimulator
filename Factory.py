@@ -272,6 +272,9 @@ class Routing:
     def __getitem__(self, item):
         return self.route[item]
 
+    def __len__(self):
+        return len(self.route)
+
 
 class Factory:
     def __init__(self):
@@ -315,19 +318,33 @@ class Factory:
                 self.engage_routing(routing)
                 #Run the routing here.
 
+    def process_widgets(self):
+        env = self.get_environment()
+        remove_widgets = []
+        for widget in self.widgets:
+            if widget.is_finished():
+                remove_widgets.append(widget)
+            elif not widget.is_running():
+                proc = widget.get_proc()
+                for machine in self.machines:
+                    if machine.contains_process(proc):
+                        env.process(widget.send_widget_to_machine(machine, proc, env))
+                        continue
+        for widget in remove_widgets:
+            self.widgets.remove(widget)
+            self.items.add(widget.get_output())
+
 
 
 
 
     def run(self, timestamp):
-        for widget in self.widgets:
-            if not widget.is_running():
-                proc = widget.get_proc()
-                for machine in self.machines:
-                    if machine.contains_process(proc):
-                        env.process(Widget_1.send_widget_to_machine(Solder_Printer, Tempo_Automation.get_environment()))
-                        continue
-        self.environment.run(until=timestamp)
+        print(self.items)
+        env = self.get_environment()
+        for i in range(env.now+1,timestamp):
+            self.process_widgets()
+            env.run(until=i)
+        print(self.items)
 
     def get_environment(self):
         return self.environment
@@ -339,9 +356,16 @@ class Widget:
         self.routing = routing
         self.pointer = 0
         self.running = False
+        self.finished = False
 
     def is_running(self):
         return self.running
+
+    def is_finished(self):
+        return self.finished
+
+    def get_output(self):
+        return self.routing.get_output()
 
     def get_proc(self):
         return self.routing[self.pointer]
@@ -355,7 +379,11 @@ class Widget:
             yield env.timeout(proc.get_time())
             print ("Finished machine process at time %d" % env.now)
             #print (proc.get_outputs())
-        self.running = False
+            self.pointer += 1
+        if self.pointer == len(self.routing):
+            self.finished = True
+        else:
+            self.running = False
 
 
 

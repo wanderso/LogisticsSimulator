@@ -277,6 +277,7 @@ class Factory:
     def __init__(self):
         self.routings = []
         self.machines = []
+        self.widgets = []
         self.environment = simpy.Environment()
         self.items = Item_Collection()
 
@@ -299,25 +300,7 @@ class Factory:
 
         self.items.remove(input)
         make_object = Widget(routing)
-        for entry in routing.get_route():
-            #print entry
-            for machine in self.machines:
-                if machine.contains_process(entry):
-                    print machine
-                    env = self.get_environment()
-                    env.process(make_object.send_widget_to_machine(machine,entry,env))
-                    break
-             #   print machine
-
-#        print(self.items)
-
-#        for machine in self.machines:
-#            if not machine.is_free():
-#                continue
-#            proc = machine.contains_process(route[0])
-#            if not proc:
-#                continue
-#            print(proc)
+        self.widgets.append(make_object)
 
 
     def logic(self):
@@ -338,6 +321,15 @@ class Factory:
 
     def run(self, timestamp):
 #        print(self.items)
+#       for widget in self.widgets:
+
+#    for entry in routing.get_route():
+#        for machine in self.machines:
+#            if machine.contains_process(entry):
+#                print machine
+#                env = self.get_environment()
+#                env.process(make_object.send_widget_to_machine(machine, entry, env))
+#                break
         self.environment.run(until=timestamp)
 
     def get_environment(self):
@@ -349,9 +341,10 @@ class Widget:
     def __init__(self, routing):
         self.routing = routing
         self.pointer = 0
+        self.running = False
 
-    def test(self):
-        print "Hello!!!"
+    def is_running(self):
+        return self.running
 
     def send_widget_to_machine(self,machine,proc,env):
         with machine.get_resource().request() as req:

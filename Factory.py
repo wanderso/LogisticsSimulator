@@ -320,16 +320,13 @@ class Factory:
 
 
     def run(self, timestamp):
-#        print(self.items)
-#       for widget in self.widgets:
-
-#    for entry in routing.get_route():
-#        for machine in self.machines:
-#            if machine.contains_process(entry):
-#                print machine
-#                env = self.get_environment()
-#                env.process(make_object.send_widget_to_machine(machine, entry, env))
-#                break
+        for widget in self.widgets:
+            if not widget.is_running():
+                proc = widget.get_proc()
+                for machine in self.machines:
+                    if machine.contains_process(proc):
+                        env.process(Widget_1.send_widget_to_machine(Solder_Printer, Tempo_Automation.get_environment()))
+                        continue
         self.environment.run(until=timestamp)
 
     def get_environment(self):
@@ -346,7 +343,11 @@ class Widget:
     def is_running(self):
         return self.running
 
+    def get_proc(self):
+        return self.routing[self.pointer]
+
     def send_widget_to_machine(self,machine,proc,env):
+        self.running = True
         with machine.get_resource().request() as req:
             yield req
             #print (proc.get_inputs())
@@ -354,6 +355,8 @@ class Widget:
             yield env.timeout(proc.get_time())
             print ("Finished machine process at time %d" % env.now)
             #print (proc.get_outputs())
+        self.running = False
+
 
 
     def increment_ptr(self):

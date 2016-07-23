@@ -149,6 +149,18 @@ class Item_Collection:
     def contents(self):
         return self.items
 
+    def count_specific_item(self,item):
+        if isinstance(item, Lone_Item):
+            for object in self.items:
+                if (object.get_item() == item):
+                    return object.get_number()
+            return 0
+        elif isinstance(item, Item_Count):
+            for object in self.items:
+                if (object.get_item() == item.get_item()):
+                    return object.get_number()
+            return 0
+
     def __contains__(self,item):
         if isinstance(item, Lone_Item):
             for object in self.items:
@@ -303,19 +315,28 @@ class Factory:
 
         self.items.remove(input)
         make_object = Widget(routing)
+        print("Widget output at time of making widget: %s" % make_object.get_output())
         self.widgets.append(make_object)
 
 
     def logic(self):
         for routing in self.routings:
             input_collected = True
+            input_max = -1
             for item in routing.input:
                 if item not in self.items:
                     input_collected = False
+                else:
+                    total_input = item.get_number()
+                    total_output = self.items.count_specific_item(item.get_item())
+                    items_available = int(total_output/total_input)
+                    if input_max == -1 or input_max > items_available:
+                        input_max = items_available
 
             if input_collected:
 #                print routing
-                self.engage_routing(routing)
+                for i in range(0,input_max):
+                    self.engage_routing(routing)
                 #Run the routing here.
 
     def process_widgets(self):
@@ -331,8 +352,12 @@ class Factory:
                         env.process(widget.send_widget_to_machine(machine, proc, env))
                         continue
         for widget in remove_widgets:
+           # print("Removing widget from list")
+           # print remove_widgets
             self.widgets.remove(widget)
+            print("Widget output: %s" % widget.get_output())
             self.items.add(widget.get_output())
+           # print self.items
 
 
 
@@ -436,7 +461,7 @@ Tempo_Automation.add_routing(Board_Construct_2)
 
 Tempo_Automation.logic()
 
-Tempo_Automation.run(10)
+Tempo_Automation.run(20)
 #env.run(until=10)
 
 #print (Box_Of_Ten)

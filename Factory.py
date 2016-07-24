@@ -2,6 +2,7 @@ import inflect
 import simpy
 import itertools
 import sys
+import random
 
 #from MainWindow import MainWindow
 #from PyQt5.QtWidgets import QApplication
@@ -294,9 +295,11 @@ class Factory:
         self.routings = []
         self.machines = []
         self.widgets = []
+        self.customers = []
         self.environment = simpy.Environment()
         self.items = Item_Collection()
         self.widget_count = 0
+        random.seed()
 
     def add_items(self, item_list):
         self.items.add(item_list)
@@ -313,12 +316,9 @@ class Factory:
         input = routing.get_input()
         output = routing.get_output()
 
-#        print(self.items)
-
         self.items.remove(input)
         make_object = Widget(routing, id=self.widget_count)
         self.widget_count += 1
-#        print("Widget output at time of making widget: %s" % make_object.get_output())
         self.widgets.append(make_object)
 
 
@@ -329,7 +329,6 @@ class Factory:
             for item in routing.input:
                 if item not in self.items:
                     input_collected = False
-#                    print ("Item %s not found" % item)
                 else:
                     total_input = item.get_number()
                     total_output = self.items.count_specific_item(item.get_item())
@@ -340,10 +339,8 @@ class Factory:
                         input_max = items_available
 
             if input_collected:
-#                print routing
                 for i in range(0,input_max):
                     self.engage_routing(routing)
-                #Run the routing here.
 
     def process_widgets(self):
         env = self.get_environment()
@@ -378,6 +375,15 @@ class Factory:
     def get_environment(self):
         return self.environment
 
+class Customer:
+    def __init__(self, env, odds=0.1):
+        self.environment = env
+        self.odds = odds
+
+    def run(self):
+        if random.random() < self.odds:
+            print "Generate order"
+
 
 
 class Widget:
@@ -387,6 +393,8 @@ class Widget:
         self.running = False
         self.finished = False
         self.id = id
+        self.item_contents = Item_Collection()
+        self.item_contents.add(routing.get_input())
 
     def is_running(self):
         return self.running
@@ -408,6 +416,7 @@ class Widget:
             yield env.timeout(proc.get_time())
             print ("Finished machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
             self.pointer += 1
+            self.item_contents = proc
         if self.pointer == len(self.routing):
             self.finished = True
         else:
@@ -446,11 +455,6 @@ Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit
 
 Buy_More_Boards = Routing(route=[Buy_Boards], input=list(itertools.repeat(Loaded_Circuit_Board, 10)),output=list(itertools.repeat(Blank_Circuit_Board, 15)))
 
-Widget_1 = Widget(Board_Construct_2)
-Widget_2 = Widget(Board_Construct_2)
-Widget_3 = Widget(Board_Construct_2)
-Widget_4 = Widget(Board_Construct_2)
-Widget_5 = Widget(Board_Construct_2)
 
 
 Tempo_Automation.add_machine(Solder_Printer)
@@ -470,7 +474,7 @@ Tempo_Automation.add_routing(Buy_More_Boards)
 
 #Tempo_Automation.logic()
 
-Tempo_Automation.run(102)
+Tempo_Automation.run(302)
 #env.run(until=10)
 
 #print (Box_Of_Ten)

@@ -321,6 +321,10 @@ class Factory:
         self.widget_count += 1
         self.widgets.append(make_object)
 
+    def add_customer(self, odds=0.1):
+        new_cust = Customer(self.environment, odds=odds)
+        self.customers.append(new_cust)
+
 
     def logic(self):
         for routing in self.routings:
@@ -379,11 +383,17 @@ class Customer:
     def __init__(self, env, odds=0.1):
         self.environment = env
         self.odds = odds
+        self.running = True
+
+#    def run(self):
+#        if random.random() < self.odds:
+#            print "Generate order"
 
     def run(self):
-        if random.random() < self.odds:
-            print "Generate order"
-
+        env = self.environment
+        time = 10
+        while True:
+            yield env.timeout(env.now + time)
 
 
 class Widget:

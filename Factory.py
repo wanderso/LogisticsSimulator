@@ -296,6 +296,7 @@ class Factory:
         self.machines = []
         self.widgets = []
         self.customers = []
+        self.orders = []
         self.environment = simpy.Environment()
         self.items = Item_Collection()
         self.widget_count = 0
@@ -322,8 +323,10 @@ class Factory:
         self.widgets.append(make_object)
 
     def add_customer(self, odds=0.1):
-        new_cust = Customer(self.environment, odds=odds)
+        env = self.get_environment()
+        new_cust = Customer(env, odds=odds)
         self.customers.append(new_cust)
+        env.process(new_cust.run())
 
 
     def logic(self):
@@ -384,17 +387,40 @@ class Customer:
         self.environment = env
         self.odds = odds
         self.running = True
+        self.order_dirty = False
+        self.orders = []
 
 #    def run(self):
 #        if random.random() < self.odds:
 #            print "Generate order"
 
+    def generate_order(self):
+        new_order = Order(self)
+        self.orders.append(new_order)
+        self.order_dirty = True
+
+    def get_orders(self):
+        return_list = []
+        for entry in self.orders:
+            return_list.append(entry)
+        self.orders = []
+        self.order_dirty = False
+        return return_list
+
     def run(self):
         env = self.environment
         time = 10
-        while True:
+        while self.running:
+            time = 1
+            while random.random() < self.odds:
+                time += 1
+            self.generate_order()
             yield env.timeout(env.now + time)
 
+
+class Order:
+    def __init__(self,customer):
+        self.customer = customer
 
 class Widget:
     def __init__(self, routing, id = 0):
@@ -475,6 +501,9 @@ Tempo_Automation.add_machine(Driver)
 Tempo_Automation.add_routing(Board_Construct_2)
 Tempo_Automation.add_routing(Buy_More_Boards)
 
+Tempo_Automation.add_customer()
+Tempo_Automation.add_customer()
+
 
 #env = Tempo_Automation.get_environment()
 
@@ -485,6 +514,9 @@ Tempo_Automation.add_routing(Buy_More_Boards)
 #Tempo_Automation.logic()
 
 Tempo_Automation.run(302)
+
+print ("Orders: %s" % str(Tempo_Automation.customers[0].orders))
+
 #env.run(until=10)
 
 #print (Box_Of_Ten)

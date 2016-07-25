@@ -329,15 +329,16 @@ class Factory:
         env.process(new_cust.run())
 
     def logic(self):
-        self.logic_traditional_factory()
+        self.logic_tempo_factory()
 
     def logic_tempo_factory(self):
         add_orders = []
         for customer in self.customers:
             if customer.get_order_dirty():
                 for entry in customer.get_orders():
+                    print("Adding order")
                     add_orders.append(entry)
-        print add_orders
+        print ("%d : %s" % (self.environment.now, str(add_orders)))
 
 
     def logic_traditional_factory(self):
@@ -423,13 +424,13 @@ class Customer:
 
     def run(self):
         env = self.environment
-        time = 10
         while self.running:
             time = 1
-            while random.random() < self.odds:
+            while random.random() > self.odds:
                 time += 1
+            yield env.timeout(time)
             self.generate_order()
-            yield env.timeout(env.now + time)
+
 
 
 class Order:
@@ -488,22 +489,24 @@ Box_Of_Ten = Item_Count(Blank_Circuit_Board,10)
 
 Tempo_Automation = Factory()
 
-Tempo_Automation.add_items([Box_Of_Ten])
+#Tempo_Automation.add_items([Box_Of_Ten])
 
-Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=2)
+Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=6)
 #Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
-Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=1)
+Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
 Buy_Boards = Process("Buy More Boards", list(itertools.repeat(Loaded_Circuit_Board, 10)),list(itertools.repeat(Blank_Circuit_Board, 15)),time=10)
+Buy_Board = Process("Order One Board",[],[Blank_Circuit_Board],time=12)
+
 
 Solder_Printer = Machine("Solder Printer",[Solder_Jet])
-Worker = Machine("Worker",[Buy_Boards])
+Worker = Machine("Worker",[Buy_Boards,Buy_Board])
 Driver = Machine("Pick and Place Machine", [Driver_Load])
 
 #Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
 
 
-Buy_More_Boards = Routing(route=[Buy_Boards], input=list(itertools.repeat(Loaded_Circuit_Board, 10)),output=list(itertools.repeat(Blank_Circuit_Board, 15)))
+#Buy_More_Boards = Routing(route=[Buy_Boards], input=list(itertools.repeat(Loaded_Circuit_Board, 10)),output=list(itertools.repeat(Blank_Circuit_Board, 15)))
 
 
 
@@ -513,7 +516,7 @@ Tempo_Automation.add_machine(Driver)
 
 #Tempo_Automation.add_routing(Board_Construct_1)
 Tempo_Automation.add_routing(Board_Construct_2)
-Tempo_Automation.add_routing(Buy_More_Boards)
+#Tempo_Automation.add_routing(Buy_More_Boards)
 
 Tempo_Automation.add_customer()
 Tempo_Automation.add_customer()

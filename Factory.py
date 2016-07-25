@@ -328,8 +328,19 @@ class Factory:
         self.customers.append(new_cust)
         env.process(new_cust.run())
 
-
     def logic(self):
+        self.logic_traditional_factory()
+
+    def logic_tempo_factory(self):
+        add_orders = []
+        for customer in self.customers:
+            if customer.get_order_dirty():
+                for entry in customer.get_orders():
+                    add_orders.append(entry)
+        print add_orders
+
+
+    def logic_traditional_factory(self):
         for routing in self.routings:
             input_collected = True
             input_max = -1
@@ -406,6 +417,9 @@ class Customer:
         self.orders = []
         self.order_dirty = False
         return return_list
+
+    def get_order_dirty(self):
+        return self.order_dirty
 
     def run(self):
         env = self.environment

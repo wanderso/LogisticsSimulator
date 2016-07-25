@@ -338,6 +338,8 @@ class Factory:
                 for entry in customer.get_orders():
                     print("Adding order")
                     add_orders.append(entry)
+        for entry in add_orders:
+            pass
         print ("%d : %s" % (self.environment.now, str(add_orders)))
 
 
@@ -532,7 +534,6 @@ Tempo_Automation.add_customer()
 
 Tempo_Automation.run(302)
 
-print ("Orders: %s" % str(Tempo_Automation.customers[0].orders))
 
 #env.run(until=10)
 

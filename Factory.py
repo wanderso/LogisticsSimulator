@@ -223,13 +223,17 @@ class Process:
 
 
 class Machine:
-    def __init__(self, name = "", process_list = []):
+    def __init__(self, name = "", process_list = [], capacity = 1):
         self.name = name
         self.processes = process_list
         self.items_contained = []
+        self.capacity = capacity
         self.idle = True
         self.environment = False
         self.res = False
+
+        self.timestamps_checked = 0
+        self.timestamps_full = 0
 
     def add_to_directory(self, key, value):
         self.directory[key] = value
@@ -257,10 +261,18 @@ class Machine:
 
     def set_environment(self,environment):
         self.environment = environment
-        self.res = simpy.Resource(self.environment, capacity=2)
+        self.res = simpy.Resource(self.environment, capacity=self.capacity)
 
     def get_resource(self):
         return self.res
+
+    def check_usage(self):
+        self.timestamps_checked += 1
+        if self.res.count >= self.capacity:
+            self.timestamps_full += 1
+
+    def return_usage(self):
+        return float(self.timestamps_full)/float(self.timestamps_checked)
 
 
     def __str__(self):
@@ -338,7 +350,9 @@ class Factory:
                     add_orders.append(entry)
         for entry in add_orders:
             self.engage_routing(self.routings[0])
-        print ("%d : %s" % (self.environment.now, str(add_orders)))
+        for entry in self.machines:
+            entry.check_usage()
+        #print ("%d : %s" % (self.environment.now, str(add_orders)))
 
 
     def logic_traditional_factory(self):
@@ -538,6 +552,9 @@ Tempo_Automation.add_customer()
 #Tempo_Automation.logic()
 
 Tempo_Automation.run(302)
+solder_perc = Solder_Printer.return_usage()*100.0
+print("Solder Printer usage: %f" % solder_perc)
+print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
 
 
 #env.run(until=10)

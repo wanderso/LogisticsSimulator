@@ -299,7 +299,6 @@ class Factory:
         self.orders = []
         self.environment = simpy.Environment()
         self.items = Item_Collection()
-        self.widget_count = 0
         random.seed()
 
     def add_items(self, item_list):
@@ -318,8 +317,7 @@ class Factory:
         output = routing.get_output()
 
         self.items.remove(input)
-        make_object = Widget(routing, id=self.widget_count)
-        self.widget_count += 1
+        make_object = Widget(routing)
         self.widgets.append(make_object)
 
     def add_customer(self, odds=0.1):
@@ -336,7 +334,7 @@ class Factory:
         for customer in self.customers:
             if customer.get_order_dirty():
                 for entry in customer.get_orders():
-                    print("Adding order")
+                    #print("Adding order")
                     add_orders.append(entry)
         for entry in add_orders:
             pass
@@ -438,11 +436,18 @@ class Customer:
 class Order:
     def __init__(self,customer):
         self.customer = customer
+        self.widget = False
+
+    def send_order_to_routing(self,routing):
+        self.widget = Widget(routing)
 
 class Widget:
-    def __init__(self, routing, id = 0):
+    id_counter = 0
+
+    def __init__(self, routing):
         self.routing = routing
-        self.pointer = 0
+        self.pointer = Widget.id_counter
+        Widget.id_counter += 1
         self.running = False
         self.finished = False
         self.id = id
@@ -505,8 +510,8 @@ Worker = Machine("Worker",[Buy_Boards,Buy_Board])
 Driver = Machine("Pick and Place Machine", [Driver_Load])
 
 #Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
-Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
-
+#Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
+Board_Construct_Tempo = Routing(route=[Buy_Board,Solder_Jet,Driver_Load],input=[],output=[Loaded_Circuit_Board])
 
 #Buy_More_Boards = Routing(route=[Buy_Boards], input=list(itertools.repeat(Loaded_Circuit_Board, 10)),output=list(itertools.repeat(Blank_Circuit_Board, 15)))
 
@@ -517,7 +522,7 @@ Tempo_Automation.add_machine(Worker)
 Tempo_Automation.add_machine(Driver)
 
 #Tempo_Automation.add_routing(Board_Construct_1)
-Tempo_Automation.add_routing(Board_Construct_2)
+Tempo_Automation.add_routing(Board_Construct_Tempo)
 #Tempo_Automation.add_routing(Buy_More_Boards)
 
 Tempo_Automation.add_customer()

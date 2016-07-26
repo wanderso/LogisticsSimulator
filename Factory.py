@@ -337,7 +337,7 @@ class Factory:
                     #print("Adding order")
                     add_orders.append(entry)
         for entry in add_orders:
-            pass
+            self.engage_routing(self.routings[0])
         print ("%d : %s" % (self.environment.now, str(add_orders)))
 
 
@@ -446,11 +446,11 @@ class Widget:
 
     def __init__(self, routing):
         self.routing = routing
-        self.pointer = Widget.id_counter
-        Widget.id_counter += 1
+        self.pointer = 0
         self.running = False
         self.finished = False
-        self.id = id
+        self.id = Widget.id_counter
+        Widget.id_counter += 1
         self.item_contents = Item_Collection()
         self.item_contents.add(routing.get_input())
 

@@ -1,0 +1,26 @@
+{
+  "name": "svg_demo",
+  "authors": [
+    "Tom Anderson <tomacorp@gmail.com>"
+  ],
+  "description": "Simple demonstration of using Snap.svg library in a test environment",
+  "main": "eyes_example.html",
+  "keywords": [
+    "SNAP",
+    "SVG",
+    "BOOTSTRAP"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/tomacorp/svg_demo",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "Snap.svg": "snap.svg#^0.4.1"
+  }
+}

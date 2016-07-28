@@ -3,6 +3,7 @@ import simpy
 import itertools
 import sys
 import random
+import FlaskOutput
 
 #from MainWindow import MainWindow
 #from PyQt5.QtWidgets import QApplication
@@ -501,62 +502,62 @@ class Widget:
 
 
 
+if __name__ == "__main__":
+
+    Blank_Circuit_Board = Lone_Item("Blank Circuit Board")
+    Soldered_Circuit_Board = Lone_Item("Soldered Circuit Board")
+    Loaded_Circuit_Board = Lone_Item("Loaded Circuit Board")
+    Box_Of_Ten = Item_Count(Blank_Circuit_Board,10)
+
+    Tempo_Automation = Factory()
+
+    #Tempo_Automation.add_items([Box_Of_Ten])
+
+    Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=6)
+    #Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
+    Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
+    Buy_Boards = Process("Buy More Boards", list(itertools.repeat(Loaded_Circuit_Board, 10)),list(itertools.repeat(Blank_Circuit_Board, 15)),time=10)
+    Buy_Board = Process("Order One Board",[],[Blank_Circuit_Board],time=12)
 
 
-Blank_Circuit_Board = Lone_Item("Blank Circuit Board")
-Soldered_Circuit_Board = Lone_Item("Soldered Circuit Board")
-Loaded_Circuit_Board = Lone_Item("Loaded Circuit Board")
-Box_Of_Ten = Item_Count(Blank_Circuit_Board,10)
+    Solder_Printer = Machine("Solder Printer",[Solder_Jet])
+    Worker = Machine("Worker",[Buy_Boards,Buy_Board])
+    Driver = Machine("Pick and Place Machine", [Driver_Load])
 
-Tempo_Automation = Factory()
+    #Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
+    #Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
+    Board_Construct_Tempo = Routing(route=[Buy_Board,Solder_Jet,Driver_Load],input=[],output=[Loaded_Circuit_Board])
 
-#Tempo_Automation.add_items([Box_Of_Ten])
-
-Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=6)
-#Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
-Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
-Buy_Boards = Process("Buy More Boards", list(itertools.repeat(Loaded_Circuit_Board, 10)),list(itertools.repeat(Blank_Circuit_Board, 15)),time=10)
-Buy_Board = Process("Order One Board",[],[Blank_Circuit_Board],time=12)
-
-
-Solder_Printer = Machine("Solder Printer",[Solder_Jet])
-Worker = Machine("Worker",[Buy_Boards,Buy_Board])
-Driver = Machine("Pick and Place Machine", [Driver_Load])
-
-#Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
-#Board_Construct_2 = Routing(route=[Solder_Jet,Driver_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
-Board_Construct_Tempo = Routing(route=[Buy_Board,Solder_Jet,Driver_Load],input=[],output=[Loaded_Circuit_Board])
-
-#Buy_More_Boards = Routing(route=[Buy_Boards], input=list(itertools.repeat(Loaded_Circuit_Board, 10)),output=list(itertools.repeat(Blank_Circuit_Board, 15)))
+    #Buy_More_Boards = Routing(route=[Buy_Boards], input=list(itertools.repeat(Loaded_Circuit_Board, 10)),output=list(itertools.repeat(Blank_Circuit_Board, 15)))
 
 
 
-Tempo_Automation.add_machine(Solder_Printer)
-Tempo_Automation.add_machine(Worker)
-Tempo_Automation.add_machine(Driver)
+    Tempo_Automation.add_machine(Solder_Printer)
+    Tempo_Automation.add_machine(Worker)
+    Tempo_Automation.add_machine(Driver)
 
-#Tempo_Automation.add_routing(Board_Construct_1)
-Tempo_Automation.add_routing(Board_Construct_Tempo)
-#Tempo_Automation.add_routing(Buy_More_Boards)
+    #Tempo_Automation.add_routing(Board_Construct_1)
+    Tempo_Automation.add_routing(Board_Construct_Tempo)
+    #Tempo_Automation.add_routing(Buy_More_Boards)
 
-Tempo_Automation.add_customer()
-Tempo_Automation.add_customer()
-
-
-#env = Tempo_Automation.get_environment()
-
-#env.process(Widget_1.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-#env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-#env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-
-#Tempo_Automation.logic()
-
-Tempo_Automation.run(302)
-solder_perc = Solder_Printer.return_usage()*100.0
-print("Solder Printer usage: %f" % solder_perc)
-print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
+    Tempo_Automation.add_customer()
+    Tempo_Automation.add_customer()
 
 
-#env.run(until=10)
+    #env = Tempo_Automation.get_environment()
 
-#print (Box_Of_Ten)
+    #env.process(Widget_1.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+    #env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+    #env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
+
+    #Tempo_Automation.logic()
+
+    Tempo_Automation.run(302)
+    solder_perc = Solder_Printer.return_usage()*100.0
+    print("Solder Printer usage: %f" % solder_perc)
+    print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
+
+
+    #env.run(until=10)
+
+    #print (Box_Of_Ten)

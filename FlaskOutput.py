@@ -29,7 +29,8 @@ def static_css(file_name):
 
 @APP.route("/<file_name>")
 def static_page(file_name):
-    safe_file_name = file_name.rsplit('..', 1)[0]
+    basename = file_name.rsplit('..', 1)[0]
+    safe_file_name = os.path.join("html/", basename)
     if os.path.isfile(safe_file_name):
         with open(safe_file_name) as fh:
             return fh.read()
@@ -37,6 +38,7 @@ def static_page(file_name):
         msg = "File " + safe_file_name + " not found"
         print(msg)
         return (msg)
+
 
 
 if __name__ == "__main__":

@@ -10,7 +10,33 @@ APP = Flask(__name__.split('.')[0])
 
 @APP.route("/")
 def home_page():
-    return "Hello world"
+    with open("html/display.html") as fh:
+        return fh.read()
+
+
+@APP.route("/css/<file_name>")
+def static_css(file_name):
+    basename = file_name.rsplit('..', 1)[0]
+    safe_file_name = os.path.join("html/css", basename)
+    if os.path.isfile(safe_file_name):
+        with open(safe_file_name) as safe_fh:
+            return safe_fh.read()
+    else:
+        msg = "File " + safe_file_name + " not found"
+        print(msg)
+        return (msg)
+
+
+@APP.route("/<file_name>")
+def static_page(file_name):
+    safe_file_name = file_name.rsplit('..', 1)[0]
+    if os.path.isfile(safe_file_name):
+        with open(safe_file_name) as fh:
+            return fh.read()
+    else:
+        msg = "File " + safe_file_name + " not found"
+        print(msg)
+        return (msg)
 
 
 if __name__ == "__main__":

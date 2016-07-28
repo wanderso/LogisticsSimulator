@@ -9,7 +9,7 @@ APP = Flask(__name__.split('.')[0])
 
 @APP.route("/")
 def home_page():
-    with open("eyes_example.html") as fh:
+    with open("display.html") as fh:
         return fh.read()
 
 @APP.route("/css/<file_name>")

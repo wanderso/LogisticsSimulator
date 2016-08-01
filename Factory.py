@@ -279,7 +279,8 @@ class Machine:
     def __str__(self):
         return self.name
 
-
+class Log:
+    pass
 
 class Routing:
     def __init__(self,route = [], input = [], output = []):
@@ -553,11 +554,12 @@ if __name__ == "__main__":
     #Tempo_Automation.logic()
 
     Tempo_Automation.run(302)
-    solder_perc = Solder_Printer.return_usage()*100.0
-    print("Solder Printer usage: %f" % solder_perc)
-    print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
+    #solder_perc = Solder_Printer.return_usage()*100.0
+    #print("Solder Printer usage: %f" % solder_perc)
+    #print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
 
 
     #env.run(until=10)
 
     #print (Box_Of_Ten)
+

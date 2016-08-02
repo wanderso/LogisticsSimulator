@@ -3,6 +3,7 @@ import simpy
 import itertools
 import sys
 import random
+import json
 import FlaskOutput
 
 #from MainWindow import MainWindow
@@ -275,12 +276,28 @@ class Machine:
     def return_usage(self):
         return float(self.timestamps_full)/float(self.timestamps_checked)
 
-
     def __str__(self):
         return self.name
 
-class Log:
-    pass
+class Static_Log:
+    all_strings_logged = []
+    sub_logs = {}
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def add_string(string, log_name=None):
+        Static_Log.all_strings_logged.append(string)
+        if log_name is not None:
+            print log_name
+
+    @staticmethod
+    def get_log(log_name=None):
+        return Static_Log.all_strings_logged
+        if log_name is not None:
+            print log_name
+
 
 class Routing:
     def __init__(self,route = [], input = [], output = []):
@@ -348,13 +365,11 @@ class Factory:
         for customer in self.customers:
             if customer.get_order_dirty():
                 for entry in customer.get_orders():
-                    #print("Adding order")
                     add_orders.append(entry)
         for entry in add_orders:
             self.engage_routing(self.routings[0])
         for entry in self.machines:
             entry.check_usage()
-        #print ("%d : %s" % (self.environment.now, str(add_orders)))
 
 
     def logic_traditional_factory(self):
@@ -417,10 +432,6 @@ class Customer:
         self.running = True
         self.order_dirty = False
         self.orders = []
-
-#    def run(self):
-#        if random.random() < self.odds:
-#            print "Generate order"
 
     def generate_order(self):
         new_order = Order(self)
@@ -486,9 +497,9 @@ class Widget:
         self.running = True
         with machine.get_resource().request() as req:
             yield req
-            print ("Undergoing machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
+            Static_Log.add_string("Undergoing machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
             yield env.timeout(proc.get_time())
-            print ("Finished machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
+            Static_Log.add_string("Finished machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
             self.pointer += 1
             self.item_contents = proc
         if self.pointer == len(self.routing):
@@ -554,12 +565,13 @@ if __name__ == "__main__":
     #Tempo_Automation.logic()
 
     Tempo_Automation.run(302)
+
+    for entry in Static_Log.get_log():
+        print(entry)
     #solder_perc = Solder_Printer.return_usage()*100.0
     #print("Solder Printer usage: %f" % solder_perc)
     #print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
 
 
     #env.run(until=10)
-
-    #print (Box_Of_Ten)
 

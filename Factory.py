@@ -290,13 +290,19 @@ class Static_Log:
     def add_string(string, log_name=None):
         Static_Log.all_strings_logged.append(string)
         if log_name is not None:
-            print log_name
+            if log_name not in Static_Log.sub_logs:
+                Static_Log.sub_logs[log_name] = []
+            Static_Log.sub_logs[log_name].append(string)
 
     @staticmethod
     def get_log(log_name=None):
-        return Static_Log.all_strings_logged
         if log_name is not None:
-            print log_name
+            if log_name in Static_Log.sub_logs:
+                return Static_Log.sub_logs[log_name]
+            else:
+                return []
+        else:
+            return Static_Log.all_strings_logged
 
 
 class Routing:
@@ -497,9 +503,9 @@ class Widget:
         self.running = True
         with machine.get_resource().request() as req:
             yield req
-            Static_Log.add_string("Undergoing machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
+            Static_Log.add_string("Undergoing machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now),log_name="widgets")
             yield env.timeout(proc.get_time())
-            Static_Log.add_string("Finished machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now))
+            Static_Log.add_string("Finished machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now),log_name="widgets")
             self.pointer += 1
             self.item_contents = proc
         if self.pointer == len(self.routing):
@@ -566,12 +572,13 @@ if __name__ == "__main__":
 
     Tempo_Automation.run(302)
 
-    for entry in Static_Log.get_log():
-        print(entry)
+    for entry in Static_Log.get_log(log_name="widgets"):
+        #print(entry)
+        pass
     #solder_perc = Solder_Printer.return_usage()*100.0
     #print("Solder Printer usage: %f" % solder_perc)
     #print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
-
+    print json.JSONEncoder().encode(Static_Log.get_log())
 
     #env.run(until=10)
 

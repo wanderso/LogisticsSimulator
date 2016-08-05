@@ -1,0 +1,65 @@
+body {
+  font-size:62.5%;
+  font-family:Helvetica, sans serif;
+  color:#2A2A2A;
+}
+h1 {
+  font-size: 2em;
+  text-align:center;
+  margin-bottom: 3px;
+}
+p {
+  font-size:1.1em;
+  font-style:italic;
+  text-align:center;
+  margin-bottom: 5px;
+}
+.chart {
+  max-width:400px;
+}
+.yAxis {
+  font-size: 1.2em;
+}
+.yAxis dt {
+  float:left;
+  width: 22%;
+  text-align:right;
+  min-height:20px;
+  line-height:20px;
+}
+.yAxis dd {
+  min-height:20px;
+  line-height:20px;
+  color:white;
+  text-align:right;
+  font-weight:bold;
+  margin-left:24%;
+  background-color:#506CAE;
+  width:74%;
+  text-indent:999999px;
+}
+.yAxis dd:hover {
+  background-color:#34549E;
+  cursor:pointer;
+}
+.yAxis dt,
+.yAxis dd {
+  padding: 0 4px;
+  margin-bottom:2px;
+  box-size:border-box;
+}
+.xAxis {
+  white-space:nowrap;
+  border-top:1px solid #ccc;
+  margin-top:5px;
+  margin-left:24%;
+}
+.xAxis li.last {
+  float:right;
+  padding-right:6px;
+}
+.xAxis li {
+  display-inline:block;
+  float:left;
+  padding:2px 0;
+}

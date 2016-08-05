@@ -10,8 +10,6 @@
 
 <div id="demo">Loading...</div>
 
-<button type="button" onclick="loadDoc()">Refresh Content</button>
-
 <script>
 
 function loadDoc() {
@@ -25,6 +23,40 @@ function loadDoc() {
   xhttp.send();
 }
 </script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css"/>
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.3.js"></script>
+
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+    <table id="example" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Process</th>
+                <th>Widget</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>Process</th>
+                <th>Widget</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+            </tr>
+        </tfoot>
+    </table>
+    <script>
+    $(document).ready(function() {
+        $('#example').DataTable( {
+            "ajax": "factory_output_json.txt",
+            "order": []
+        } );
+        loadDoc();
+    } );
+
+    </script>
 
 </body>
 </html>

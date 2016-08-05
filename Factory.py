@@ -575,10 +575,15 @@ if __name__ == "__main__":
     for entry in Static_Log.get_log(log_name="widgets"):
         #print(entry)
         pass
-    #solder_perc = Solder_Printer.return_usage()*100.0
+    solder_perc = Solder_Printer.return_usage()*100.0
+    euro_perc = Driver.return_usage() * 100.0
     #print("Solder Printer usage: %f" % solder_perc)
     #print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
     print(json.JSONEncoder().encode(Static_Log.get_log()))
+
+    with open('html/factory_output.txt', 'w') as ajax_file:
+        ajax_file.write("Solder Printer usage: %f\n" % solder_perc)
+        ajax_file.write("Europlace Machine usage: %f\n" % euro_perc)
 
     #env.run(until=10)
 

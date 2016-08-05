@@ -10,7 +10,7 @@ APP = Flask(__name__.split('.')[0])
 
 @APP.route("/")
 def home_page():
-    with open("html/javascript_array_table.html") as fh:
+    with open("html/javascript_display.html") as fh:
         return fh.read()
 
 

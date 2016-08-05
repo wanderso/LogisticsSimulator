@@ -504,8 +504,15 @@ class Widget:
         with machine.get_resource().request() as req:
             yield req
             Static_Log.add_string("Undergoing machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now),log_name="widgets")
+            start_time = env.now
             yield env.timeout(proc.get_time())
             Static_Log.add_string("Finished machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now),log_name="widgets")
+            Static_Log.add_string(["%s" % str(proc), "%s" % str(self.id), "%d" % start_time, "%d" % env.now],log_name="widget_machine")
+
+
+
+
+
             self.pointer += 1
             self.item_contents = proc
         if self.pointer == len(self.routing):
@@ -581,11 +588,13 @@ if __name__ == "__main__":
     #print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
 
     with open('html/factory_output_json.txt', 'w') as ajax_file:
-        ajax_file.write(json.JSONEncoder().encode(Static_Log.get_log()))
+        table_info = {}
+        table_info["data"] = Static_Log.get_log(log_name="widget_machine")
+        ajax_file.write(json.JSONEncoder().encode(table_info))
 
     with open('html/factory_output_plaintext.txt', 'w') as ajax_file:
-        ajax_file.write("<p>Projected Solder Printer usage: %f</p>\n" % solder_perc)
-        ajax_file.write("<p>Projected Europlace Machine usage: %f</p>\n" % euro_perc)
+        ajax_file.write("<p>Projected Solder Printer usage: %.2f%%</p>\n" % solder_perc)
+        ajax_file.write("<p>Projected Europlace Machine usage: %.2f%%</p>\n" % euro_perc)
 
     #env.run(until=10)
 

@@ -2,6 +2,8 @@ import random
 import sys
 import simpy
 
+from enum import Enum
+
 from LogisticsWindow import LogisticsWindow
 from PyQt5.QtWidgets import QApplication
 
@@ -46,8 +48,33 @@ class Parts:
 
 
 class Logistics_Employee:
+
+    class State(Enum):
+        waiting = 1
+        working_design = 2
+
+
     def __init__(self):
-        pass
+        self.status = self.State.waiting
+
+    def run_sim(self,env,world):
+        # while True:
+        #     print('Start parking at %d' % env.now)
+        #     parking_duration = 5
+        #     yield env.timeout(parking_duration)
+        #     print('Start driving at %d' % env.now)
+        #     trip_duration = 2
+        #     yield env.timeout(trip_duration)
+        while True:
+            if self.status == self.State.waiting:
+                if world.job_list == []:
+                    print("Waiting for job...")
+                    yield env.timeout(1)
+                else:
+                    print(world.job_list)
+                    world.job_list = []
+                    yield env.timeout(4)
+
 
 
 
@@ -102,6 +129,11 @@ class Customer:
                 design_part_list.append((part, random.choice(part.count)))
         return Design(design_part_list, [])
 
+class Job:
+    def __init__(self):
+        pass
+
+
 
 class World:
     def __init__(self):
@@ -109,6 +141,7 @@ class World:
         self.distributor_list = []
         self.part_list = []
         self.customer_list = []
+        self.job_list = []
         self.environment = simpy.Environment()
 
     def generate_part(self):
@@ -127,13 +160,22 @@ class World:
             if self.customer_list == []:
                 self.generate_customer("Placeholder")
             customer = random.choice(self.customer_list)
+        self.job_list = "Meh"
         return customer.generate_design(self.get_part_list())
+
+    def generate_employee(self,employee=None):
+        new_employee = Logistics_Employee()
+        self.environment.process(new_employee.run_sim(self.environment,self))
+
 
     def main_loop(self):
         pass
 
     def now(self):
-        return self.time
+        return self.environment.now
+
+    def advance_time(self,timestep):
+        self.environment.run(until=(self.environment.now+timestep))
 
     def get_part_list(self):
         return self.part_list
@@ -160,6 +202,7 @@ if __name__ == '__main__':
 
     universe.generate_distributor("megamax")
     universe.generate_distributor("superlock")
+    universe.generate_employee()
 
     app = QApplication(sys.argv)
     ex = LogisticsWindow()

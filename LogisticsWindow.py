@@ -41,14 +41,16 @@ class LogisticsControlPanel(QFrame):
         parts_button = QPushButton("Parts List")
         order_button = QPushButton("Start Order")
         clear_button = QPushButton("Clear")
+        next_button = QPushButton("⥤⥤")
+
 
         stock_button.setAccessibleName("Stock")
         stock_button.clicked.connect(self.parent().stockButtonClicked)
         parts_button.clicked.connect(self.parent().partsButtonClicked)
-
         order_button.clicked.connect(self.parent().orderButtonClicked)
-
         clear_button.clicked.connect(self.parent().clearButtonClicked)
+        next_button.clicked.connect(self.parent().nextButtonClicked)
+
 
         hbox = QHBoxLayout()
         vbox = QVBoxLayout()
@@ -58,6 +60,7 @@ class LogisticsControlPanel(QFrame):
 
         vbox.addWidget(order_button)
         vbox.addWidget(clear_button)
+        vbox.addWidget(next_button)
         vbox.addStretch(1)
 
         hbox.addLayout(vbox)
@@ -352,6 +355,8 @@ class LogisticsWindow(QWidget):
         self.control_panel = LogisticsControlPanel(self)
         self.display_panel = LogisticsDisplayPanel(self)
 
+        self.world = []
+
         self.control_panel.setFrameShape(QFrame.StyledPanel)
         self.display_panel.setFrameShape(QFrame.StyledPanel)
 
@@ -375,6 +380,7 @@ class LogisticsWindow(QWidget):
     def setWorld(self, world):
         self.control_panel.setWorld(world)
         self.display_panel.setWorld(world)
+        self.world = world
 
 
     def stockButtonClicked(self):
@@ -385,7 +391,6 @@ class LogisticsWindow(QWidget):
         self.display_panel.orderButtonClicked()
         self.setLayout(self.hbox1)
 
-
     def partsButtonClicked(self):
         self.display_panel.partsButtonClicked()
         self.setLayout(self.hbox1)
@@ -393,6 +398,10 @@ class LogisticsWindow(QWidget):
     def clearButtonClicked(self):
         self.display_panel.clearButtonClicked()
         self.setLayout(self.hbox1)
+
+    def nextButtonClicked (self):
+        self.world.advance_time(3)
+        print("Now: " + str(self.world.now()))
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

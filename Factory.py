@@ -578,7 +578,7 @@ if __name__ == "__main__":
     #solder_perc = Solder_Printer.return_usage()*100.0
     #print("Solder Printer usage: %f" % solder_perc)
     #print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
-    print json.JSONEncoder().encode(Static_Log.get_log())
+    print(json.JSONEncoder().encode(Static_Log.get_log()))
 
     #env.run(until=10)
 

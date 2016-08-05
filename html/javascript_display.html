@@ -29,11 +29,13 @@ function loadDoc() {
 <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.3.js"></script>
 
 <script type="text/javascript" src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-    <table id="example" class="display" cellspacing="0" width="100%">
+
+    <h3>All Processes</h3>
+    <table id="Widget_Process" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
                 <th>Process</th>
-                <th>Widget</th>
+                <th>Widget ID</th>
                 <th>Start Time</th>
                 <th>End Time</th>
             </tr>
@@ -41,17 +43,49 @@ function loadDoc() {
         <tfoot>
             <tr>
                 <th>Process</th>
-                <th>Widget</th>
+                <th>Widget ID</th>
                 <th>Start Time</th>
                 <th>End Time</th>
             </tr>
         </tfoot>
     </table>
+    <h3>Most Delayed Widgets</h3>
+    <table id="Widget_Delay" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Widget ID</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Total Delay</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>Widget ID</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Total Delay</th>
+            </tr>
+        </tfoot>
+    </table>
+
+
+
     <script>
     $(document).ready(function() {
-        $('#example').DataTable( {
-            "ajax": "factory_output_json.txt",
+        $('#Widget_Process').DataTable( {
+            "ajax": {
+                "url": "factory_output_json.txt",
+                "dataSrc": "widget_machine"
+            },
             "order": []
+        } );
+        $('#Widget_Delay').DataTable( {
+            "ajax": {
+                "url": "factory_output_json.txt",
+                "dataSrc": "widget_delay"
+            },
+            "order": [[3, 'desc']]
         } );
         loadDoc();
     } );

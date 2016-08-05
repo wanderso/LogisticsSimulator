@@ -515,8 +515,6 @@ class Widget:
 
 
 
-
-
             self.pointer += 1
             self.item_contents = proc
         if self.pointer == len(self.routing):

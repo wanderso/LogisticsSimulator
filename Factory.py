@@ -579,7 +579,9 @@ if __name__ == "__main__":
     euro_perc = Driver.return_usage() * 100.0
     #print("Solder Printer usage: %f" % solder_perc)
     #print("Europlacer machine usage: %f" % (Driver.return_usage()*100))
-    print(json.JSONEncoder().encode(Static_Log.get_log()))
+
+    with open('html/factory_output_json.txt', 'w') as ajax_file:
+        ajax_file.write(json.JSONEncoder().encode(Static_Log.get_log()))
 
     with open('html/factory_output_plaintext.txt', 'w') as ajax_file:
         ajax_file.write("<p>Projected Solder Printer usage: %f</p>\n" % solder_perc)

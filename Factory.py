@@ -354,7 +354,7 @@ class Factory:
         output = routing.get_output()
 
         self.items.remove(input)
-        make_object = Widget(routing)
+        make_object = Widget(routing, self.environment)
         self.widgets.append(make_object)
 
     def add_customer(self, odds=0.1):
@@ -408,7 +408,7 @@ class Factory:
                 proc = widget.get_proc()
                 for machine in self.machines:
                     if machine.contains_process(proc):
-                        env.process(widget.send_widget_to_machine(machine, proc, env))
+                        env.process(widget.send_widget_to_machine(machine, proc))
                         continue
         for widget in remove_widgets:
             self.widgets.remove(widget)
@@ -440,7 +440,7 @@ class Customer:
         self.orders = []
 
     def generate_order(self):
-        new_order = Order(self)
+        new_order = Order(self,self.environment)
         self.orders.append(new_order)
         self.order_dirty = True
 
@@ -467,17 +467,18 @@ class Customer:
 
 
 class Order:
-    def __init__(self,customer):
+    def __init__(self,customer, environment):
         self.customer = customer
+        self.environment = environment
         self.widget = False
 
     def send_order_to_routing(self,routing):
-        self.widget = Widget(routing)
+        self.widget = Widget(routing,self.environment)
 
 class Widget:
     id_counter = 0
 
-    def __init__(self, routing):
+    def __init__(self, routing, env):
         self.routing = routing
         self.pointer = 0
         self.running = False
@@ -486,6 +487,8 @@ class Widget:
         Widget.id_counter += 1
         self.item_contents = Item_Collection()
         self.item_contents.add(routing.get_input())
+        self.environment = env
+        self.start_time = self.environment.now
 
     def is_running(self):
         return self.running
@@ -499,8 +502,9 @@ class Widget:
     def get_proc(self):
         return self.routing[self.pointer]
 
-    def send_widget_to_machine(self,machine,proc,env):
+    def send_widget_to_machine(self,machine,proc):
         self.running = True
+        env = self.environment
         with machine.get_resource().request() as req:
             yield req
             Static_Log.add_string("Undergoing machine process %s for widget %s at time %d" % (str(proc), str(self.id), env.now),log_name="widgets")
@@ -517,6 +521,8 @@ class Widget:
             self.item_contents = proc
         if self.pointer == len(self.routing):
             self.finished = True
+            self.end_time = env.now
+            Static_Log.add_string(["%d" % self.id, "%d" % self.start_time, "%d" % self.end_time, "%d" % (self.end_time-self.start_time)],log_name="widget_delay")
         else:
             self.running = False
 
@@ -546,7 +552,7 @@ if __name__ == "__main__":
 
 
     Solder_Printer = Machine("Solder Printer",[Solder_Jet])
-    Worker = Machine("Worker",[Buy_Boards,Buy_Board])
+    Worker = Machine("Worker",[Buy_Boards,Buy_Board],capacity=20)
     Driver = Machine("Pick and Place Machine", [Driver_Load])
 
     #Board_Construct_1 = Routing(route=[Solder_Jet,Hand_Load], input=[Blank_Circuit_Board],output=[Loaded_Circuit_Board])
@@ -571,10 +577,6 @@ if __name__ == "__main__":
 
     #env = Tempo_Automation.get_environment()
 
-    #env.process(Widget_1.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-    #env.process(Widget_2.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-    #env.process(Widget_3.send_widget_to_machine(Solder_Printer,Tempo_Automation.get_environment()))
-
     #Tempo_Automation.logic()
 
     Tempo_Automation.run(302)
@@ -589,8 +591,10 @@ if __name__ == "__main__":
 
     with open('html/factory_output_json.txt', 'w') as ajax_file:
         table_info = {}
-        table_info["data"] = Static_Log.get_log(log_name="widget_machine")
+        table_info["widget_machine"] = Static_Log.get_log(log_name="widget_machine")
+        table_info["widget_delay"] = Static_Log.get_log(log_name="widget_delay")
         ajax_file.write(json.JSONEncoder().encode(table_info))
+
 
     with open('html/factory_output_plaintext.txt', 'w') as ajax_file:
         ajax_file.write("<p>Projected Solder Printer usage: %.2f%%</p>\n" % solder_perc)

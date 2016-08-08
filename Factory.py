@@ -540,8 +540,6 @@ if __name__ == "__main__":
 
     Tempo_Automation = Factory()
 
-    #Tempo_Automation.add_items([Box_Of_Ten])
-
     Solder_Jet = Process("Solder Jet",[Blank_Circuit_Board],[Soldered_Circuit_Board], time=6)
     #Hand_Load = Process("Hand Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
     Driver_Load = Process("Machine Load Circuit Board",[Soldered_Circuit_Board],[Loaded_Circuit_Board], time=3)
